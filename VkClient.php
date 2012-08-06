@@ -12,7 +12,7 @@ class VkClient
 	 * @param string $email Email used to login
 	 * @param string $password Password used to login
 	 * @param integer $scope Access rights bit mask
-	 * @param string $devNull URL to dummy file (used for redirect with access_token from vk servers)
+	 * @param string $devNull URL to dummy html page
 	 * @throws Exception
 	 */
 	function __construct($appId, $email, $password, $scope, $devNull)
@@ -50,6 +50,22 @@ class VkClient
 			if (preg_match('#access_token=(\w+)#', $loginData, $matches)) {
 				$this->accessToken = $matches[1];
 				return;
+			} elseif (preg_match('#onclick\s*=\s*"\s*return\s+allow\s*\(\s*\);?\s*"#', $loginData, $matches)) {
+				// we need approve application
+				if (!preg_match('#function\s+allow\s*\(\s*\)\s*{.*?"(https://[^"]+)"#s', $loginData, $matches))
+					throw new Exception('can\'t get access token');
+				$loginData = CurlHelper::getUrl($matches[1], array(
+					CURLOPT_HEADER => 1,
+					CURLOPT_FOLLOWLOCATION => 1,
+					CURLOPT_COOKIEJAR => $cookieFile,
+					CURLOPT_COOKIEFILE => $cookieFile,
+				));
+				if (preg_match('#access_token=(\w+)#', $loginData, $matches)) {
+					$this->accessToken = $matches[1];
+					return;
+				}
+			} elseif ($phpQueryObject->find("$('form input[name=email]')")->count() == 1) {
+				throw new Exception('wrong login/password');
 			}
 		}
 
