@@ -1,7 +1,7 @@
 <?php
 
-require_once('lib/phpQuery/phpQuery/phpQuery.php');
-require_once('CurlHelper.php');
+require_once(__DIR__.'/lib/phpQuery/phpQuery/phpQuery.php');
+require_once(__DIR__.'/lib/CurlHelper.php');
 
 class VkClient
 {
@@ -30,15 +30,15 @@ class VkClient
 			CURLOPT_COOKIESESSION => true, // create new session
 		));
 		$phpQueryObject = phpQuery::newDocumentHTML($oauthPage);
-		if ($phpQueryObject->find("$('form input[name=email]')")->count() == 1) {
+		if ($phpQueryObject->find("form input[name=email]")->count() == 1) {
 			$formData = array();
-			foreach ($phpQueryObject->find("$('form input')") as $node) {
+			foreach ($phpQueryObject->find("form input") as $node) {
 				$jNode = pq($node);
 				$formData[ $jNode->attr('name') ] = $jNode->attr('value');
 			}
 			$formData['email'] = $email;
 			$formData['pass'] = $password;
-			$formAction = $phpQueryObject->find("$('form')")->attr('action');
+			$formAction = $phpQueryObject->find("form")->attr('action');
 
 			$cookieFile = tempnam(sys_get_temp_dir(), 'vkCookie');
 			$loginData = CurlHelper::postUrl($formAction, $formData, array(
@@ -64,7 +64,7 @@ class VkClient
 					$this->accessToken = $matches[1];
 					return;
 				}
-			} elseif ($phpQueryObject->find("$('form input[name=email]')")->count() == 1) {
+			} elseif ($phpQueryObject->find("form input[name=email]")->count() == 1) {
 				throw new Exception('wrong login/password');
 			}
 		}
