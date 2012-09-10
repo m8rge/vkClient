@@ -12,7 +12,7 @@ class VkClient
 	 * @param string $email Email used to login
 	 * @param string $password Password used to login
 	 * @param integer $scope Access rights bit mask
-	 * @param string $devNull URL to dummy html page
+	 * @param string $devNull URL to dummy file. File must exists and be visible to script.
 	 * @throws Exception
 	 */
 	function __construct($appId, $email, $password, $scope, $devNull)
@@ -49,6 +49,7 @@ class VkClient
 			));
 			if (preg_match('#access_token=(\w+)#', $loginData, $matches)) {
 				$this->accessToken = $matches[1];
+				unlink($cookieFile);
 				return;
 			} elseif (preg_match('#onclick\s*=\s*"\s*return\s+allow\s*\(\s*\);?\s*"#', $loginData, $matches)) {
 				// we need approve application
@@ -62,6 +63,7 @@ class VkClient
 				));
 				if (preg_match('#access_token=(\w+)#', $loginData, $matches)) {
 					$this->accessToken = $matches[1];
+					unlink($cookieFile);
 					return;
 				}
 			} elseif ($phpQueryObject->find("form input[name=email]")->count() == 1) {

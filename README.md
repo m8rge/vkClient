@@ -1,7 +1,7 @@
 vkClient
 ========
 
-Serverside, userless vk.com api client
+Serverside, userless vk.com api client.
 
 Use all vk.com api without user interaction!
 All you need is create vk application and provide vk user requisites.
@@ -24,7 +24,7 @@ All you need is create vk application and provide vk user requisites.
 * Use it:
 
 	```php
-	$response = $this->makeApiCall('friends.get', array(
+	$response = $vk->makeApiCall('friends.get', array(
 		'uid' => $uid
 	));
 	
