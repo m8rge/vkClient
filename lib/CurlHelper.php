@@ -5,6 +5,26 @@ class CurlHelper
 	/**
 	 * @param string $url
 	 * @param array $additionalConfig
+	 * @param int $retryCount
+	 * @throws Exception
+	 * @return mixed downloaded data
+	 */
+	static function getUrlFailSafe($url, $additionalConfig = array(), $retryCount = 5) {
+		for ($i=0; $i<$retryCount; $i++) {
+			try {
+				return self::getUrl($url, $additionalConfig);
+			} catch (Exception $e) {
+				if ($i+1 == $retryCount)
+					throw $e;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param string $url
+	 * @param array $additionalConfig
 	 * @return mixed downloaded data
 	 * @throws Exception
 	 */
@@ -17,7 +37,7 @@ class CurlHelper
 		curl_setopt_array($ch, $additionalConfig);
 		$data = curl_exec($ch);
 		if ($data === false)
-			throw new Exception("curl error: ".curl_error($ch));
+			throw new Exception("retrieving url $url failed with error: ".curl_error($ch));
 		$http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 		if (in_array($http_status, array(400, 401, 403, 404, 500)))
@@ -44,7 +64,7 @@ class CurlHelper
 		curl_setopt_array($ch, $additionalConfig);
 		$data = curl_exec($ch);
 		if ($data === false)
-			throw new Exception("curl error: ".curl_error($ch));
+			throw new Exception("posting to $url failed with error: ".curl_error($ch).". postFields: ".print_r($postQuery, true));
 		$http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 		if (in_array($http_status, array(400, 401, 403, 404, 500)))
@@ -61,13 +81,15 @@ class CurlHelper
 	 */
 	static function downloadToFile($url, $toFile, $additionalConfig = array()) {
 		$fp = fopen($toFile, 'w');
+		$timeout = 5;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_FILE, $fp);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
 		curl_setopt_array($ch, $additionalConfig);
 		$res = curl_exec($ch);
 		if ($res === false)
-			throw new Exception("curl error: ".curl_error($ch));
+			throw new Exception("retrieving url $url failed with error: ".curl_error($ch));
 		$http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 		fclose($fp);

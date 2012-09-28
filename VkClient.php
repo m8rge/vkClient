@@ -44,6 +44,7 @@ class VkClient
 			$loginData = CurlHelper::postUrl($formAction, $formData, array(
 				CURLOPT_HEADER => 1,
 				CURLOPT_FOLLOWLOCATION => 1,
+				CURLOPT_SSL_VERIFYPEER => false,
 				CURLOPT_COOKIEJAR => $cookieFile,
 				CURLOPT_COOKIEFILE => $cookieFile,
 			));
@@ -58,6 +59,7 @@ class VkClient
 				$loginData = CurlHelper::getUrl($matches[1], array(
 					CURLOPT_HEADER => 1,
 					CURLOPT_FOLLOWLOCATION => 1,
+					CURLOPT_SSL_VERIFYPEER => false,
 					CURLOPT_COOKIEJAR => $cookieFile,
 					CURLOPT_COOKIEFILE => $cookieFile,
 				));
@@ -85,7 +87,9 @@ class VkClient
 			'access_token' => $this->accessToken
 		), $params);
 		$queryString = http_build_query($query);
-		$answer = CurlHelper::getUrl("https://api.vk.com/method/$apiName?$queryString");
+		$answer = CurlHelper::getUrl("https://api.vk.com/method/$apiName?$queryString", array(
+			CURLOPT_SSL_VERIFYPEER => false,
+		));
 		$answer = json_decode($answer, true);
 		if (isset($answer['error']) || !isset($answer['response'])) {
 			throw new Exception(print_r($answer, true));
